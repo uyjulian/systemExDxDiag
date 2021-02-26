@@ -51,6 +51,12 @@ static void DxDiagContainerToTJSStructure(iTJSDispatch2* dictionary, IDxDiagCont
 			WCHAR wszChildName[256];
 			if (SUCCEEDED(pDxDiagContainer->EnumChildContainerNames(i, wszChildName, sizeof(wszChildName) / sizeof(wszChildName[0]))))
 			{
+				ttstr child_name = wszChildName;
+				if (child_name == TJS_W("DxDiag_DirectPlay"))
+				{
+					// Avoid an optional component installation prompt.
+					continue;
+				}
 				IDxDiagContainer* pChildContainer = NULL;
 				if (SUCCEEDED(pDxDiagContainer->GetChildContainer(wszChildName, &pChildContainer)))
 				{
@@ -58,7 +64,7 @@ static void DxDiagContainerToTJSStructure(iTJSDispatch2* dictionary, IDxDiagCont
 					tTJSVariant sub_dictionary(sub_dictionary_dispatch, sub_dictionary_dispatch);
 					sub_dictionary_dispatch->Release();
 					sub_dictionary_dispatch = sub_dictionary.AsObjectNoAddRef();
-					dictionary->PropSet(TJS_MEMBERENSURE | TJS_IGNOREPROP, wszChildName, NULL, &sub_dictionary, dictionary);
+					dictionary->PropSet(TJS_MEMBERENSURE | TJS_IGNOREPROP, child_name.c_str(), child_name.GetHint(), &sub_dictionary, dictionary);
 					DxDiagContainerToTJSStructure(sub_dictionary_dispatch, pChildContainer);
 				}
 				if (pChildContainer)
